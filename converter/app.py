@@ -9,7 +9,7 @@ __all__ = ['Dispatcher']
 
 class Dispatcher(BaseHTTPRequestHandler):
     handlers = {
-        r'^/usd/$': USDHandler(),
+        r'^/$': ConverterHandler(),
     }
 
     def build_environ(self) -> dict:

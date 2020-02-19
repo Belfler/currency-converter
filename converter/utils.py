@@ -9,7 +9,7 @@ __all__ = ['create_argparser', 'request_url', 'configure_server', 'response_with
 
 
 def create_argparser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description='USD-to-RUB Converter')
+    parser = argparse.ArgumentParser(description='Currency Converter')
     parser.add_argument('-H', '--host', dest='host', default='localhost')
     parser.add_argument('-p', '--port', dest='port', type=int, default=8000)
     return parser

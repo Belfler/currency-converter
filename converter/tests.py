@@ -1,7 +1,8 @@
 import json
-import os
 import unittest
+import threading
 from http.client import responses
+from http.server import HTTPServer
 from urllib.error import HTTPError
 
 from converter.app import *
@@ -25,19 +26,39 @@ class TestArgumentParser(unittest.TestCase):
 
 
 class TestDispatcher(unittest.TestCase):
-    def setUp(self) -> None:
-        self.host, self.port = 'localhost', 8000
-        self.child_pid = os.fork()
-        if self.child_pid == 0:
-            server = configure_server(Dispatcher, self.host, self.port)
-            server.serve_forever()
+    server: HTTPServer
+    host: str = 'localhost'
+    port: int = 8000
 
-    def test_availability(self) -> None:
-        response = request_url(f'http://{self.host}:{self.port}/usd/')
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.server = configure_server(Dispatcher, cls.host, cls.port)
+        thread = threading.Thread(target=cls.server.serve_forever)
+        thread.start()
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.server.shutdown()
+
+    def test_request_no_query_string(self) -> None:
+        response = request_url(f'http://{self.host}:{self.port}')
         data = json.loads(response)
         self.assertEqual(data['base_currency'], 'USD')
         self.assertEqual(data['target_currency'], 'RUB')
         self.assertIn('rate', data)
+
+    def test_request_eur_to_chf_with_amount(self) -> None:
+        base = 'EUR'
+        target = 'CHF'
+        amount = 100
+        response = request_url(f'http://{self.host}:{self.port}?base={base}&target={target}&amount={amount}')
+        data = json.loads(response)
+        self.assertEqual(data['base_currency'], base)
+        self.assertEqual(data['target_currency'], target)
+        self.assertIn('rate', data)
+        self.assertIn('amount_in_base_currency', data)
+        self.assertEqual(data['amount_in_base_currency'], amount)
+        self.assertIn('amount_in_target_currency', data)
 
     def test_request_not_existing_page(self) -> None:
         with self.assertRaises(HTTPError):

@@ -1,27 +1,29 @@
 import json
 import urllib.parse
+from typing import Dict, List, Any
 from urllib.error import URLError, HTTPError
 
 from converter.exceptions import RemoteServerError
 from converter.utils import request_url, response_with_error
 
-__all__ = ['USDHandler', 'not_found_handler']
+__all__ = ['ConverterHandler', 'not_found_handler']
 
 
-class USDHandler:
+class ConverterHandler:
     def __call__(self, environ: dict, url_args: dict) -> tuple:
-        self.environ = environ
-        self.url_args = url_args
-        method = self.environ['REQUEST_METHOD'].lower()
+        self.environ: Dict[str, Any] = environ
+        self.url_args: Dict[str, str] = url_args
+        self.qs_args: Dict[str, List[str]] = urllib.parse.parse_qs(self.environ['QUERY_STRING'])
+        method: str = self.environ['REQUEST_METHOD'].lower()
         if hasattr(self, method):
             return getattr(self, method)()
         else:
             return response_with_error(405)
 
     @staticmethod
-    def get_rate() -> float:
+    def get_rate(base: str = 'USD', target: str = 'RUB') -> float:
         try:
-            response = request_url('https://api.exchangeratesapi.io/latest?base=USD&symbols=RUB')
+            response: str = request_url(f'https://api.exchangeratesapi.io/latest?base={base}&symbols={target}')
         except (URLError, HTTPError) as e:
             raise RemoteServerError(e)
 
@@ -30,23 +32,25 @@ class USDHandler:
         if 'error' in data:
             raise RemoteServerError(data['error'])
 
-        rate = data['rates']['RUB']
+        rate = float(data['rates'][target])
         return rate
 
     def get(self) -> tuple:
+        base_currency: str = self.qs_args.get('base', ['USD'])[0]
+        target_currency: str = self.qs_args.get('target', ['RUB'])[0]
         try:
-            rate = self.get_rate()
+            rate: float = self.get_rate(base_currency, target_currency)
         except RemoteServerError as e:
             return response_with_error(424, str(e))
 
         content = {
-            'base_currency': 'USD',
-            'target_currency': 'RUB',
+            'base_currency': base_currency,
+            'target_currency': target_currency,
             'rate': rate,
         }
-        qs = urllib.parse.parse_qs(self.environ['QUERY_STRING'])
-        if 'amount' in qs:
-            amount_in_base_currency = float(qs['amount'][0])
+
+        if 'amount' in self.qs_args:
+            amount_in_base_currency = float(self.qs_args['amount'][0])
             amount_in_target_currency = rate * amount_in_base_currency
             content.update({
                 'amount_in_base_currency': amount_in_base_currency,
