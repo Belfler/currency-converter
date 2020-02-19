@@ -1,10 +1,12 @@
 import json
 import os
 import unittest
+from http.client import responses
 from urllib.error import HTTPError
 
-from converter.utils import create_argparser, request_url, configure_server
-from converter.app import Dispatcher
+from converter.app import *
+from converter.handlers import *
+from converter.utils import *
 
 
 class TestArgumentParser(unittest.TestCase):
@@ -40,6 +42,25 @@ class TestDispatcher(unittest.TestCase):
     def test_request_not_existing_page(self) -> None:
         with self.assertRaises(HTTPError):
             request_url(f'http://{self.host}:{self.port}/index.php')
+
+
+class TestUtils(unittest.TestCase):
+    def test_configure_server(self) -> None:
+        server_address = ('0.0.0.0', 7575)
+        server = configure_server(Dispatcher, *server_address)
+        self.assertIs(server.RequestHandlerClass, Dispatcher)
+        self.assertEqual(server.server_address, server_address)
+        server.socket.close()
+
+    def test_response_with_error(self) -> None:
+        expected_result = (404, {'Content-Type': 'application/json'}, json.dumps({'error': responses[404]}))
+        actual_result = response_with_error(404)
+        self.assertEqual(expected_result, actual_result)
+
+        msg = 'Remote server is unavailable'
+        expected_result = (424, {'Content-Type': 'application/json'}, json.dumps({'error': msg}))
+        actual_result = response_with_error(424, error_msg=msg)
+        self.assertEqual(expected_result, actual_result)
 
 
 if __name__ == '__main__':
