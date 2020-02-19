@@ -4,6 +4,8 @@ import urllib.parse
 
 from converter.handlers import *
 
+__all__ = ['Dispatcher']
+
 
 class Dispatcher(BaseHTTPRequestHandler):
     handlers = {

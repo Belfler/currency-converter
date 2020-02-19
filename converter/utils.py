@@ -5,6 +5,8 @@ from http.client import responses
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from typing import Type
 
+__all__ = ['create_argparser', 'request_url', 'configure_server', 'response_with_error']
+
 
 def create_argparser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='USD-to-RUB Converter')
