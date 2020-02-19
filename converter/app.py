@@ -1,5 +1,5 @@
 import re
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler
 import urllib.parse
 
 from converter.handlers import *
@@ -48,9 +48,3 @@ class Dispatcher(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         self.dispatch()
-
-
-def configure_server(host: str = 'localhost', port: int = 8000) -> HTTPServer:
-    server_address = (host, port)
-    server = HTTPServer(server_address, Dispatcher)
-    return server
