@@ -3,8 +3,8 @@ import os
 import unittest
 from urllib.error import HTTPError
 
-from converter.app import configure_server
-from converter.utils import create_argparser, request_url
+from converter.utils import create_argparser, request_url, configure_server
+from converter.app import Dispatcher
 
 
 class TestArgumentParser(unittest.TestCase):
@@ -27,7 +27,7 @@ class TestDispatcher(unittest.TestCase):
         self.host, self.port = 'localhost', 8000
         self.child_pid = os.fork()
         if self.child_pid == 0:
-            server = configure_server()
+            server = configure_server(Dispatcher, self.host, self.port)
             server.serve_forever()
 
     def test_availability(self) -> None:
