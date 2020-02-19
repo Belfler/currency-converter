@@ -22,12 +22,12 @@ class USDHandler:
     @staticmethod
     def get_rate() -> float:
         response = request_url('https://api.exchangeratesapi.io/latest?base=USD&symbols=RUB')
-        response = json.loads(response)
+        data = json.loads(response)
 
-        if 'error' in response:
-            raise RemoteServerError(response['error'])
+        if 'error' in data:
+            raise RemoteServerError(data['error'])
 
-        rate = response['rates']['RUB']
+        rate = data['rates']['RUB']
         return rate
 
     def get(self) -> tuple:
