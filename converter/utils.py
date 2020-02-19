@@ -1,5 +1,7 @@
 import argparse
+import json
 import urllib.request
+from http.client import responses
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from typing import Type
 
@@ -21,3 +23,9 @@ def configure_server(handler: Type[BaseHTTPRequestHandler], host: str = 'localho
     server_address = (host, port)
     server = HTTPServer(server_address, handler)
     return server
+
+
+def response_with_error(http_code: int, error_msg: str = None) -> tuple:
+    if error_msg is None:
+        error_msg = responses[http_code]
+    return http_code, {'Content-Type': 'application/json'}, json.dumps({'error': error_msg})

@@ -1,10 +1,9 @@
 import json
 import urllib.parse
-import urllib.request
-from http.client import responses
+from urllib.error import URLError, HTTPError
 
 from converter.exceptions import RemoteServerError
-from converter.utils import request_url
+from converter.utils import request_url, response_with_error
 
 __all__ = ['USDHandler', 'not_found_handler']
 
@@ -17,11 +16,15 @@ class USDHandler:
         if hasattr(self, method):
             return getattr(self, method)()
         else:
-            return 405, {}, ''
+            return response_with_error(405)
 
     @staticmethod
     def get_rate() -> float:
-        response = request_url('https://api.exchangeratesapi.io/latest?base=USD&symbols=RUB')
+        try:
+            response = request_url('https://api.exchangeratesapi.io/latest?base=USD&symbols=RUB')
+        except (URLError, HTTPError) as e:
+            raise RemoteServerError(e)
+
         data = json.loads(response)
 
         if 'error' in data:
@@ -31,7 +34,11 @@ class USDHandler:
         return rate
 
     def get(self) -> tuple:
-        rate = self.get_rate()
+        try:
+            rate = self.get_rate()
+        except RemoteServerError as e:
+            return response_with_error(424, str(e))
+
         content = {
             'base_currency': 'USD',
             'target_currency': 'RUB',
@@ -49,6 +56,4 @@ class USDHandler:
 
 
 def not_found_handler(environ: dict, url_args: dict) -> tuple:
-    status_code = 404
-    content = {'error': responses[status_code]}
-    return status_code, {'Content-Type': 'application/json'}, json.dumps(content)
+    return response_with_error(404)
