@@ -9,7 +9,7 @@ from urllib.error import HTTPError
 
 from converter.app import *
 from converter.handlers import *
-from converter.typing import HandlerResponse
+from converter.typing import *
 from converter.utils import *
 
 
@@ -88,6 +88,68 @@ class TestUtils(unittest.TestCase):
         expected_result: HandlerResponse = (424, {'Content-Type': 'application/json'}, json.dumps({'error': msg}))
         actual_result: HandlerResponse = response_with_error(424, error_msg=msg)
         self.assertEqual(expected_result, actual_result)
+
+
+class TestConverterHandler(unittest.TestCase):
+    handler: Handler = ConverterHandler()
+
+    def test_call_without_query_string(self) -> None:
+        environ: Dict[str, Any] = {
+            'REQUEST_METHOD': 'GET',
+            'QUERY_STRING': '',
+            'PATH_INFO': '/',
+        }
+        handler_response: HandlerResponse = self.handler(environ, {})
+        self.assertEqual(200, handler_response[0])
+        data: Dict[str, Any] = json.loads(handler_response[2])
+        self.assertEqual('USD', data['base_currency'])
+        self.assertEqual('RUB', data['target_currency'])
+        self.assertIn('rate', data)
+        self.assertTrue(isinstance(data['rate'], float))
+
+    def test_call_with_wrong_base_currency(self) -> None:
+        environ: Dict[str, Any] = {
+            'REQUEST_METHOD': 'GET',
+            'QUERY_STRING': 'base=US&target=RUB',
+            'PATH_INFO': '/',
+        }
+        handler_response: HandlerResponse = self.handler(environ, {})
+        self.assertEqual(424, handler_response[0])
+
+    def test_call_with_unsupported_method(self) -> None:
+        environ: Dict[str, Any] = {
+            'REQUEST_METHOD': 'POST',
+            'QUERY_STRING': '',
+            'PATH_INFO': '/',
+        }
+        handler_response: HandlerResponse = self.handler(environ, {})
+        self.assertEqual(405, handler_response[0])
+        self.assertEqual(response_with_error(405), handler_response)
+
+    def test_call_with_amount(self) -> None:
+        amount: int = 100
+        environ: Dict[str, Any] = {
+            'REQUEST_METHOD': 'GET',
+            'QUERY_STRING': f'amount={amount}',
+            'PATH_INFO': '/',
+        }
+        handler_response: HandlerResponse = self.handler(environ, {})
+        self.assertEqual(200, handler_response[0])
+        data: Dict[str, Any] = json.loads(handler_response[2])
+        self.assertEqual(amount, data['amount_in_base_currency'])
+        self.assertIn('amount_in_target_currency', data)
+
+
+class TestNotFoundHandler(unittest.TestCase):
+    def test_call_default(self) -> None:
+        environ: Dict[str, Any] = {
+            'REQUEST_METHOD': 'GET',
+            'QUERY_STRING': '',
+            'PATH_INFO': '/index.php',
+        }
+        handler_response: HandlerResponse = not_found_handler(environ, {})
+        self.assertEqual(404, handler_response[0])
+        self.assertEqual(response_with_error(404), handler_response)
 
 
 if __name__ == '__main__':
