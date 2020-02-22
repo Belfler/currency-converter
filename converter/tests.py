@@ -6,6 +6,7 @@ from http.client import responses
 from http.server import HTTPServer
 from typing import Dict, Tuple, Any
 from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
 from converter.app import *
 from converter.handlers import *
@@ -68,6 +69,11 @@ class TestDispatcher(unittest.TestCase):
     def test_request_not_existing_page(self) -> None:
         with self.assertRaises(HTTPError):
             request_url(f'http://{self.host}:{self.port}/index.php')
+
+    def test_post_request(self) -> None:
+        request: Request = Request(f'http://{self.host}:{self.port}', method='POST')
+        with self.assertRaises(HTTPError):
+            urlopen(request)
 
 
 class TestUtils(unittest.TestCase):
