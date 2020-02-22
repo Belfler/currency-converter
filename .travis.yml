@@ -2,4 +2,7 @@ language: python
 python:
   - "3.7"
   - "3.8"
-script: coverage run -m converter.tests
+script:
+  - pip install codecov
+  - coverage run -m converter.tests
+  - bash <(curl -s https://codecov.io/bash)
