@@ -1,4 +1,9 @@
 ## Currency Converter
+
+[![Build Status](https://travis-ci.com/Belfler/currency-converter.svg?branch=master)](https://travis-ci.com/Belfler/currency-converter) [![codecov](https://codecov.io/gh/Belfler/currency-converter/branch/master/graph/badge.svg)](https://codecov.io/gh/Belfler/currency-converter)
+
+
+
 HTTP server currency converter. Data is retrieved from https://exchangeratesapi.io/
 
 ### How to install
