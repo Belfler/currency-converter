@@ -1,6 +1,6 @@
 ## Currency Converter
 
-[![Build Status](https://travis-ci.com/Belfler/currency-converter.svg?branch=master)](https://travis-ci.com/Belfler/currency-converter) [![codecov](https://codecov.io/gh/Belfler/currency-converter/branch/master/graph/badge.svg)](https://codecov.io/gh/Belfler/currency-converter)
+[![Python 3.8](https://img.shields.io/badge/python-3.8-brightgreen.svg)](https://www.python.org/downloads/release/python-380/) [![Build Status](https://travis-ci.com/Belfler/currency-converter.svg?branch=master)](https://travis-ci.com/Belfler/currency-converter) [![codecov](https://codecov.io/gh/Belfler/currency-converter/branch/master/graph/badge.svg)](https://codecov.io/gh/Belfler/currency-converter)
 
 
 
